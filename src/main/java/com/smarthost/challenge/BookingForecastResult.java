@@ -4,20 +4,20 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BookingForecastResult {
-    private int freeRoomsUsage;
+    private int economyRoomsUsage;
     private int premiumRoomsUsage;
-    private int freeRoomsIncome;
+    private int economyRoomsIncome;
     private int premiumRoomsIncome;
 
     public BookingForecastResult() {
     }
 
-    public int getFreeRoomsUsage() {
-        return freeRoomsUsage;
+    public int getEconomyRoomsUsage() {
+        return economyRoomsUsage;
     }
 
-    public void setFreeRoomsUsage(int freeRoomsUsage) {
-        this.freeRoomsUsage = freeRoomsUsage;
+    public void setEconomyRoomsUsage(int economyRoomsUsage) {
+        this.economyRoomsUsage = economyRoomsUsage;
     }
 
     public int getPremiumRoomsUsage() {
@@ -28,12 +28,12 @@ public class BookingForecastResult {
         this.premiumRoomsUsage = premiumRoomsUsage;
     }
 
-    public int getFreeRoomsIncome() {
-        return freeRoomsIncome;
+    public int getEconomyRoomsIncome() {
+        return economyRoomsIncome;
     }
 
-    public void setFreeRoomsIncome(int freeRoomsIncome) {
-        this.freeRoomsIncome = freeRoomsIncome;
+    public void setEconomyRoomsIncome(int economyRoomsIncome) {
+        this.economyRoomsIncome = economyRoomsIncome;
     }
 
     public int getPremiumRoomsIncome() {

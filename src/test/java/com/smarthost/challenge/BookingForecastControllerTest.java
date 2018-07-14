@@ -36,12 +36,38 @@ public class BookingForecastControllerTest {
     public void bookingForecast() throws Exception {
         mockMvc.perform(
                 get("/booking-forecast")
-                        .param("freeEconomyRooms", "3")
-                        .param("freePremiumRooms", "3"))
+                        .param("availablePremiumRooms", "3")
+                        .param("availableEconomyRooms", "3"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.freeRoomsUsage", is(3)))
                 .andExpect(jsonPath("$.premiumRoomsUsage", is(3)))
-                .andExpect(jsonPath("$.freeRoomsIncome", is(3)))
-                .andExpect(jsonPath("$.premiumRoomsIncome", is(3)));
+                .andExpect(jsonPath("$.economyRoomsUsage", is(3)))
+                .andExpect(jsonPath("$.premiumRoomsIncome", is(738)))
+                .andExpect(jsonPath("$.economyRoomsIncome", is(167)));
+    }
+
+    @Test
+    public void bookingForecast_premiumBidsLack() throws Exception {
+        mockMvc.perform(
+                get("/booking-forecast")
+                        .param("availablePremiumRooms", "7")
+                        .param("availableEconomyRooms", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.premiumRoomsUsage", is(6)))
+                .andExpect(jsonPath("$.economyRoomsUsage", is(4)))
+                .andExpect(jsonPath("$.premiumRoomsIncome", is(1054)))
+                .andExpect(jsonPath("$.economyRoomsIncome", is(189)));
+    }
+
+    @Test
+    public void bookingForecast_economyBidsLack() throws Exception {
+        mockMvc.perform(
+                get("/booking-forecast")
+                        .param("availablePremiumRooms", "2")
+                        .param("availableEconomyRooms", "7"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.premiumRoomsUsage", is(2)))
+                .andExpect(jsonPath("$.economyRoomsUsage", is(4)))
+                .andExpect(jsonPath("$.premiumRoomsIncome", is(583)))
+                .andExpect(jsonPath("$.economyRoomsIncome", is(189)));
     }
 }
