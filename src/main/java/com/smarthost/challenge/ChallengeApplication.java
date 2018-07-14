@@ -24,9 +24,9 @@ import java.util.List;
 
 @SpringBootApplication
 public class ChallengeApplication {
-
-    private static final Logger log = LoggerFactory.getLogger(ChallengeApplication.class);
-    private static final String URL = "https://gist.githubusercontent.com/fjahr/b164a446db285e393d8e4b36d17f4143/raw/0eb2e48bf4d1b8ae97631aa341a9c72489a90e43/smarthost_hotel_guests.json";
+    private static final String URL =
+            "https://gist.githubusercontent.com/fjahr/b164a446db285e393d8e4b36d17f4143/" +
+                    "raw/0eb2e48bf4d1b8ae97631aa341a9c72489a90e43/smarthost_hotel_guests.json";
 
     public static void main(String args[]) {
         SpringApplication.run(ChallengeApplication.class);
@@ -39,8 +39,7 @@ public class ChallengeApplication {
 
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper()
-                .configure(JsonParser.Feature.ALLOW_TRAILING_COMMA, true);
+        return new ObjectMapper().configure(JsonParser.Feature.ALLOW_TRAILING_COMMA, true);
     }
 
     @Bean
@@ -51,7 +50,6 @@ public class ChallengeApplication {
         final Integer[] o = objectMapper.readerFor(Integer[].class).readValue(jsonNode);
         final List<Integer> bids = Arrays.asList(o);
         bids.sort(Comparator.comparingInt(b -> -b));
-        log.info("guest bids: " + bids.toString());
         return bids;
     }
 }

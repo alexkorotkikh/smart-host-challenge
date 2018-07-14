@@ -9,21 +9,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.partitioningBy;
-import static java.util.stream.Collectors.summarizingInt;
 
 @RestController
 public class BookingForecastController {
     private static final Logger log = LoggerFactory.getLogger(ChallengeApplication.class);
-    private static final Integer THRESHOLD = 100;
+    private static final int THRESHOLD = 100;
 
-    @Autowired
-    @Qualifier("guestBids")
     private List<Integer> guestBids;
+
+    public BookingForecastController(@Autowired @Qualifier("guestBids") List<Integer> guestBids) {
+        this.guestBids = guestBids;
+    }
 
     @GetMapping("/booking-forecast")
     public BookingForecastResult bookingForecast(final int availableEconomyRooms,
@@ -31,25 +29,57 @@ public class BookingForecastController {
         assert availablePremiumRooms >= 0;
         assert availableEconomyRooms >= 0;
 
-        final BookingForecastResult result = new BookingForecastResult();
+        final Map<Boolean, List<Integer>> parts = guestBids.stream().collect(partitioningBy(bid -> bid >= THRESHOLD));
+        final List<Integer> premiumBids = parts.get(true);
+        final List<Integer> economyBids = parts.get(false);
 
-        final int premiumRoomsUsage =
-                availablePremiumRooms > guestBids.size() ? guestBids.size() : availablePremiumRooms;
-        final int premiumRoomsIncome =
-                guestBids.stream().limit(premiumRoomsUsage).mapToInt(Integer::intValue).sum();
-        result.setPremiumRoomsUsage(premiumRoomsUsage);
-        result.setPremiumRoomsIncome(premiumRoomsIncome);
+        final int premiumRoomsUsage = Math.min(availablePremiumRooms, premiumBids.size());
+        final int premiumRoomsIncome = premiumBids.stream().limit(premiumRoomsUsage).mapToInt(Integer::intValue).sum();
+        final int premiumRoomsLeft = Math.max(availablePremiumRooms - premiumRoomsUsage, 0);
 
-        final List<Integer> economyBids =
-                guestBids.stream().skip(availableEconomyRooms).filter(bid -> bid < THRESHOLD)
-                        .collect(Collectors.toList());
-        final int economyRoomsUsage =
-                availableEconomyRooms > economyBids.size() ? economyBids.size() : availableEconomyRooms;
-        final int economyRoomsIncome =
-                economyBids.stream().limit(availableEconomyRooms).mapToInt(Integer::intValue).sum();
-        result.setEconomyRoomsUsage(economyRoomsUsage);
-        result.setEconomyRoomsIncome(economyRoomsIncome);
+        final int economyRoomsShortage = Math.max(economyBids.size() - availableEconomyRooms, 0);
+        final int upgradedRoomsUsage = Math.min(premiumRoomsLeft, economyRoomsShortage);
+        final int upgradedRoomsIncome = economyBids.stream().limit(upgradedRoomsUsage).mapToInt(Integer::intValue).sum();
 
-        return result;
+        final int economyRoomsUsage = Math.min(economyBids.size() - upgradedRoomsUsage, availableEconomyRooms);
+        final int economyRoomsIncome = economyBids.stream().skip(upgradedRoomsUsage).limit(economyRoomsUsage).mapToInt(Integer::intValue).sum();
+
+        return new BookingForecastResult(
+                economyRoomsUsage, premiumRoomsUsage + upgradedRoomsUsage,
+                economyRoomsIncome, premiumRoomsIncome + upgradedRoomsIncome
+        );
+    }
+}
+
+class BookingForecastResult {
+    private int economyRoomsUsage;
+    private int premiumRoomsUsage;
+    private int economyRoomsIncome;
+    private int premiumRoomsIncome;
+
+    BookingForecastResult(final int economyRoomsUsage,
+                          final int premiumRoomsUsage,
+                          final int economyRoomsIncome,
+                          final int premiumRoomsIncome) {
+        this.economyRoomsUsage = economyRoomsUsage;
+        this.premiumRoomsUsage = premiumRoomsUsage;
+        this.economyRoomsIncome = economyRoomsIncome;
+        this.premiumRoomsIncome = premiumRoomsIncome;
+    }
+
+    public int getEconomyRoomsUsage() {
+        return economyRoomsUsage;
+    }
+
+    public int getPremiumRoomsUsage() {
+        return premiumRoomsUsage;
+    }
+
+    public int getEconomyRoomsIncome() {
+        return economyRoomsIncome;
+    }
+
+    public int getPremiumRoomsIncome() {
+        return premiumRoomsIncome;
     }
 }
